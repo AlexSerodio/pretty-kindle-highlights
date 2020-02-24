@@ -1,4 +1,3 @@
-
 import 'package:flutter/material.dart';
 import 'package:pretty_kindle_highlights/file_processor.dart';
 import 'package:pretty_kindle_highlights/model/book.dart';
