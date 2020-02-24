@@ -3,7 +3,6 @@ import 'package:flutter/material.dart';
 import 'package:pretty_kindle_highlights/file_processor.dart';
 import 'package:pretty_kindle_highlights/model/book.dart';
 import 'package:pretty_kindle_highlights/detail_page.dart';
-import 'package:pretty_kindle_highlights/mocks.dart';
 
 void main() => runApp(new MyApp());
 
@@ -37,13 +36,14 @@ class _ListPageState extends State<ListPage> {
 
   @override
   void initState() {
-    books = Mocks.getBooks();
+    books = new List();
     super.initState();
   }
 
-  void syncHighlights() {
+  void syncHighlights() async {
     FileProcessor processor = new FileProcessor();
-    processor.process();
+    await processor.process();
+    setState(() => books = processor.books);
   }
 
   @override
@@ -99,10 +99,19 @@ class _ListPageState extends State<ListPage> {
       ),
     );
 
+    final noBody = Container(
+      child: Center(
+        child: Text(
+          'No book found. Try to resync the app.', 
+          style: TextStyle(color: Colors.white, fontSize: 16)
+        ),
+      )
+    );
+
     return Scaffold(
       backgroundColor: Color.fromRGBO(58, 66, 86, 1.0),
       appBar: topAppBar,
-      body: makeBody,
+      body: books.isNotEmpty ? makeBody : noBody,
     );
   }
 

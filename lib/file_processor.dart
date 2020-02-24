@@ -1,5 +1,3 @@
-import 'dart:io';
-
 import 'package:pretty_kindle_highlights/file_reader.dart';
 
 import 'model/book.dart';
@@ -12,61 +10,45 @@ class FileProcessor {
   String _startAuthorDelimiter = '(';
   String _endAuthorDelimiter = ')';
 
-  int _lineIndex = 0;
-  List<String> _lines;
+  FileReader _reader = new FileReader();
 
   Set<Book> _books = new Set();
   Set<Highlight> _highlights = new Set();
   Set<String> _titles = new Set();
 
-  Set<Book> get books => _books;
-  Set<Highlight> get highlights => _highlights;
+  List<Book> get books => _books.toList();
+  List<Highlight> get highlights => _highlights.toList();
 
-  void _nextLine(){
-    _lineIndex++;
-  }
-
-  String _currentLine(){
-    return _lines[_lineIndex];
-  }
-
-  String _readLine(){
-    return _lines[_lineIndex++];
-  }
-
-  bool _hasNextLine() {
-    return _lineIndex < _lines.length;
-  }
-
-  void process() async {
+  Future<void> process() async {
     _reset();
 
-    File file = await FileReader.getFile();
-    _lines = await file.readAsLines();
+    try {
+      await _reader.readFile();
+    } catch(ex) {
+      print(ex.toString());
+      return;
+    }
     
-    while (_hasNextLine()) {
-      String line = _readLine();
+    while (_reader.hasNextLine()) {
+      String line = _reader.readLine();
       _processBook(line);
 
-      line = _readLine();
+      line = _reader.readLine();
       String position = _processPosition(line);
       String date = _processDate(line);
 
-      _nextLine();
+      _reader.nextLine();
       _processHighlight(position, date);
 
-      _nextLine();
+      _reader.nextLine();
     }
-
-    _printResults();
   }
 
   void _reset() {
     _books = new Set();
     _highlights = new Set();
     _titles = new Set();
-    _lineIndex = 0;
-    _lines = List<String>();
+    _reader.reset();
   }
 
   void _processBook(String line) {
@@ -99,8 +81,8 @@ class FileProcessor {
 
   void _processHighlight(String position, String date) {
     String text = '';
-    while(_currentLine() != _highlightDelimiter) {
-      text += _readLine();
+    while(_reader.currentLine() != _highlightDelimiter) {
+      text += _reader.readLine();
     }
 
     Highlight highlight = new Highlight(
@@ -112,23 +94,6 @@ class FileProcessor {
     );
 
     _highlights.add(highlight);
-  }
-
-  void _printResults() {
-
-    for (var highlight in _highlights)
-      print(highlight);
-
-    print('=================================================');
-
-    for (var book in _books)
-      print(book);
-
-    print('=================================================');
-
-    print('File processing has finished successfully.');
-    print("Books found: " + _books.length.toString());
-    print("Highlights found: " + _highlights.length.toString());
   }
 
 }
