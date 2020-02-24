@@ -22,22 +22,40 @@ class FileProcessor {
   Set<Book> get books => _books;
   Set<Highlight> get highlights => _highlights;
 
+  void _nextLine(){
+    _lineIndex++;
+  }
+
+  String _currentLine(){
+    return _lines[_lineIndex];
+  }
+
+  String _readLine(){
+    return _lines[_lineIndex++];
+  }
+
+  bool _hasNextLine() {
+    return _lineIndex < _lines.length;
+  }
+
   void process() async {
     _reset();
 
     File file = await FileReader.getFile();
     _lines = await file.readAsLines();
     
-    while (_lineIndex < _lines.length) {
-      String line = _nextLine();
+    while (_hasNextLine()) {
+      String line = _readLine();
       _processBook(line);
 
-      line = _nextLine();
+      line = _readLine();
       String position = _processPosition(line);
       String date = _processDate(line);
 
-      line = _nextLine();
-      _processHighlight(line, position, date);
+      _nextLine();
+      _processHighlight(position, date);
+
+      _nextLine();
     }
 
     _printResults();
@@ -49,10 +67,6 @@ class FileProcessor {
     _titles = new Set();
     _lineIndex = 0;
     _lines = List<String>();
-  }
-
-  String _nextLine(){
-    return _lines[_lineIndex++];
   }
 
   void _processBook(String line) {
@@ -78,16 +92,15 @@ class FileProcessor {
 
   String _processDate(String line) {
     String fullDate = line.split(_positionAndDateDelimiter)[1];
-    int start = fullDate.lastIndexOf(', ') + 1;
+    int start = fullDate.lastIndexOf(', ') + 2;
 
     return fullDate.substring(start, fullDate.length);
   }
 
-  void _processHighlight(String line, String position, String date) {
+  void _processHighlight(String position, String date) {
     String text = '';
-    while(line != _highlightDelimiter) {
-      text += line;
-      _lineIndex++;
+    while(_currentLine() != _highlightDelimiter) {
+      text += _readLine();
     }
 
     Highlight highlight = new Highlight(
@@ -102,6 +115,17 @@ class FileProcessor {
   }
 
   void _printResults() {
+
+    for (var highlight in _highlights)
+      print(highlight);
+
+    print('=================================================');
+
+    for (var book in _books)
+      print(book);
+
+    print('=================================================');
+
     print('File processing has finished successfully.');
     print("Books found: " + _books.length.toString());
     print("Highlights found: " + _highlights.length.toString());

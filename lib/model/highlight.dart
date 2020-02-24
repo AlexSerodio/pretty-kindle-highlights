@@ -31,6 +31,6 @@ class Highlight {
 
   @override
   String toString() {
-    return '$text';
+    return '$text | Position: $position | Date: $date';
   }
 }
