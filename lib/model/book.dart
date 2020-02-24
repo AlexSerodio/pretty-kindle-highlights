@@ -22,4 +22,10 @@ class Book {
       "title": title,
       "author": author,
   };
+
+  @override
+  String toString() {
+    return '$title - $author';
+  }
+
 }

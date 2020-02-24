@@ -28,4 +28,9 @@ class Highlight {
       "date": date,
       "bookId": bookId,
   };
+
+  @override
+  String toString() {
+    return '$text';
+  }
 }
